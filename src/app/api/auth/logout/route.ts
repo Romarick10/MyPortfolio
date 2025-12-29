@@ -1,7 +1,14 @@
-import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
 export async function POST() {
-  await auth.logout()
-  return NextResponse.json({ message: 'Logged out successfully' })
+  const response = NextResponse.json({ message: "Logged out successfully" });
+  response.cookies.set("auth_token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 0, // Expire immediately
+    path: "/",
+  });
+  return response;
 }

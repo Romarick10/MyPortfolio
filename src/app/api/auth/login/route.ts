@@ -13,8 +13,17 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await auth.login(email, password)
-    
-    return NextResponse.json(result)
+
+    const response = NextResponse.json(result)
+    response.cookies.set('auth_token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    })
+
+    return response
   } catch (error: any) {
     console.error('Login error:', error)
     return NextResponse.json(

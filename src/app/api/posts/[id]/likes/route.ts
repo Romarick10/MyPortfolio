@@ -1,59 +1,53 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/prisma'
-import { headers } from 'next/headers'
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/prisma";
+import { headers } from "next/headers";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { postId } = params
-    const body = await request.json()
-    const headersList = await headers()
-    
+    const { id: postId } = await params;
+    const body = await request.json();
+    const headersList = await headers();
+
     const like = await db.like.create({
       data: {
         postId,
         userId: body.userId,
-        userIp: headersList.get('x-forwarded-for') || 'unknown',
-        userAgent: headersList.get('user-agent') || 'unknown',
+        userIp: headersList.get("x-forwarded-for") || "unknown",
+        userAgent: headersList.get("user-agent") || "unknown",
       },
-    })
-    
-    return NextResponse.json(like)
+    });
+
+    return NextResponse.json(like);
   } catch (error) {
-    console.error('Like error:', error)
-    return NextResponse.json(
-      { error: 'Failed to like post' },
-      { status: 500 }
-    )
+    console.error("Like error:", error);
+    return NextResponse.json({ error: "Failed to like post" }, { status: 500 });
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { postId } = params
-    const body = await request.json()
-    
+    const { id: postId } = await params;
+    const body = await request.json();
+
     await db.like.deleteMany({
       where: {
         postId,
-        OR: [
-          { userId: body.userId },
-          { userIp: body.userIp },
-        ],
+        OR: [{ userId: body.userId }, { userIp: body.userIp }],
       },
-    })
-    
-    return NextResponse.json({ message: 'Unliked successfully' })
+    });
+
+    return NextResponse.json({ message: "Unliked successfully" });
   } catch (error) {
-    console.error('Unlike error:', error)
+    console.error("Unlike error:", error);
     return NextResponse.json(
-      { error: 'Failed to unlike post' },
+      { error: "Failed to unlike post" },
       { status: 500 }
-    )
+    );
   }
 }
