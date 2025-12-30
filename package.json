@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "seed": "node scripts/seed.js"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.20.0",

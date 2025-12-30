@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { db } from '@/lib/prisma'
+import clientPromise from '@/config/db'
 
 export async function GET() {
   try {
@@ -13,22 +13,55 @@ export async function GET() {
       )
     }
 
-    const posts = await db.post.findMany({
-      where: {
-        authorId: user.role === 'ADMIN' ? undefined : user.id,
-      },
-      include: {
-        author: {
-          select: { name: true }
-        },
-        categories: {
-          select: { name: true }
+    const client = await clientPromise
+    const db = client.db('myportfolio')
+
+    // Build aggregation pipeline for posts with author and categories
+    const pipeline = [
+      // Filter posts by author if not admin
+      ...(user.role === 'ADMIN' ? [] : [{ $match: { authorId: user.id } }]),
+      // Lookup author information
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'authorId',
+          foreignField: '_id',
+          as: 'author'
         }
       },
-      orderBy: {
-        createdAt: 'desc'
+      // Unwind author array (assuming one author per post)
+      { $unwind: { path: '$author', preserveNullAndEmptyArrays: true } },
+      // Lookup categories
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categories',
+          foreignField: '_id',
+          as: 'categories'
+        }
+      },
+      // Sort by creation date descending
+      { $sort: { createdAt: -1 } },
+      // Project only needed fields
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          slug: 1,
+          excerpt: 1,
+          published: 1,
+          featured: 1,
+          views: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          publishedAt: 1,
+          author: { name: '$author.name' },
+          categories: { name: 1 }
+        }
       }
-    })
+    ]
+
+    const posts = await db.collection('posts').aggregate(pipeline).toArray()
 
     return NextResponse.json({ posts })
   } catch (error: any) {
