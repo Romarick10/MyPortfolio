@@ -33,39 +33,48 @@ export const auth = {
 
   // Login user
   login: async (email: string, password: string) => {
-    const user = await db.user.findByEmail(email);
+    try {
+      const user = await db.user.findByEmail(email);
 
-    if (!user) {
-      throw new Error("User not found");
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const isValid = await auth.verifyPassword(password, user.password);
+      if (!isValid) {
+        throw new Error("Invalid password");
+      }
+
+      // Generate token
+      const token: string = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          avatar: user.avatar,
+        },
+        token,
+      };
+    } catch (error) {
+      if (error instanceof Error && (error.message === "User not found" || error.message === "Invalid password")) {
+        throw error; // Re-throw authentication errors
+      }
+      // Handle database connection issues
+      console.warn('Database connection issue in login:', error instanceof Error ? error.message : String(error));
+      throw new Error("Service temporarily unavailable");
     }
-
-    const isValid = await auth.verifyPassword(password, user.password);
-    if (!isValid) {
-      throw new Error("Invalid password");
-    }
-
-    // Generate token
-    const token: string = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatar: user.avatar,
-      },
-      token,
-    };
   },
 
   // Logout user
@@ -75,30 +84,36 @@ export const auth = {
 
   // Get current user from token
   getCurrentUser: async () => {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get("auth_token")?.value;
 
-    if (!token) {
+      if (!token) {
+        return null;
+      }
+
+      const decoded = auth.verifyToken(token);
+      if (!decoded) {
+        return null;
+      }
+
+      const user = await db.user.findByEmail(decoded.email);
+      if (!user) {
+        return null;
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar,
+      };
+    } catch (error) {
+      // Handle database connection issues during build time
+      console.warn('Database connection issue in getCurrentUser:', error instanceof Error ? error.message : String(error));
       return null;
     }
-
-    const decoded = auth.verifyToken(token);
-    if (!decoded) {
-      return null;
-    }
-
-    const user = await db.user.findByEmail(decoded.email);
-    if (!user) {
-      return null;
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      avatar: user.avatar,
-    };
   },
 
   // Middleware helper
