@@ -1,12 +1,24 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Check if the path is a dashboard route
+  if (pathname.startsWith('/dashboard')) {
+    const token = request.cookies.get('auth_token')?.value
+
+    if (!token) {
+      // Redirect to login if no token
+      const loginUrl = new URL('/auth/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
   return NextResponse.next()
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
   matcher: [
     /*

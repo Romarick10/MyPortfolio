@@ -16,6 +16,8 @@ const menuItems = [
   { href: '/experience', label: 'Experience' },
   { href: '/blog', label: 'Blog' },
   { href: '/contact', label: 'Contact' },
+  { href: '/auth/login', label: 'Login' },
+  { href: '/auth/signup', label: 'Signup' },
 ];
 
 export function Header() {
