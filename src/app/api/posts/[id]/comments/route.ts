@@ -6,7 +6,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const headersList = await headers()
-    
+
+    // Auto-approve comments from authenticated users
+    const isAuthenticated = !!body.userId
+    const approved = isAuthenticated // Authenticated users' comments are auto-approved
+
     const comment = await db.comment.create({
       data: {
         content: body.content,
@@ -17,14 +21,17 @@ export async function POST(request: NextRequest) {
         postId: body.postId,
         parentId: body.parentId,
         userId: body.userId,
-        approved: false, // Moderate all comments by default
+        approved,
       },
       include: {
         user: { select: { name: true, avatar: true } },
       },
     })
-    
-    return NextResponse.json(comment)
+
+    return NextResponse.json({
+      ...comment,
+      message: approved ? 'Comment posted successfully!' : 'Comment submitted for moderation.'
+    })
   } catch (error) {
     console.error('Create comment error:', error)
     return NextResponse.json(

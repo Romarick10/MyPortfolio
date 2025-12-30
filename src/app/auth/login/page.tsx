@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { unstable_noStore as noStore } from 'next/cache';
+import { unstable_noStore as noStore } from "next/cache";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
   noStore();
@@ -55,7 +55,13 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        router.push(redirect);
+        // Redirect based on user role
+        const userRole = data.user.role;
+        if (userRole === "ADMIN") {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
+        }
       } else {
         setError(data.error || "Login failed");
       }
