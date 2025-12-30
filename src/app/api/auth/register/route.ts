@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import clientPromise from "@/config/db";
 import { auth } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -13,8 +13,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const client = await clientPromise;
+    const db = client.db('myportfolio');
+
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await db.collection('users').findOne({ email });
     if (existingUser) {
       return NextResponse.json(
         { error: "User with this email already exists" },
@@ -26,20 +29,23 @@ export async function POST(request: Request) {
     const hashedPassword = await auth.hashPassword(password);
 
     // Create user
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        username: email.split("@")[0], // Simple username generation
-        password: hashedPassword,
-        role: "USER", // Default role
-      },
-    });
+    const user = {
+      name,
+      email,
+      username: email.split("@")[0], // Simple username generation
+      password: hashedPassword,
+      role: "USER", // Default role
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await db.collection('users').insertOne(user);
 
     // Don't return password
     const { password: _, ...userWithoutPassword } = user;
+    const userWithId = { ...userWithoutPassword, id: result.insertedId.toString() };
 
-    return NextResponse.json({ user: userWithoutPassword }, { status: 201 });
+    return NextResponse.json({ user: userWithId }, { status: 201 });
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json(

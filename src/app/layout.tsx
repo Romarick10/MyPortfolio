@@ -4,7 +4,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { Header } from '@/components/portfolio/header';
-import { Footer } from '@/components/portfolio/footer';
+import FooterWrapper from '@/components/FooterWrapper';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -47,7 +47,7 @@ export default function RootLayout({
         <main className="flex-1">
           {children}
         </main>
-        <Footer />
+        <FooterWrapper />
         <Toaster />
       </body>
     </html>
