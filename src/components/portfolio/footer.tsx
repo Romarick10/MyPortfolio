@@ -30,7 +30,7 @@ export function Footer() {
     whatsapp: "+237676154253",
     github: "bongnteh-romarick-ndzelen",
     linkedin: "bongnteh-romarick-ndzelen-b2946023b",
-    twitter: "bongnteh-romarick", // Update with your actual Twitter handle
+    twitter: "BongntehNdzelen", // Update with your actual Twitter handle
     facebook: "Romarick10", // Update with your actual Facebook username
   };
 
@@ -137,7 +137,7 @@ export function Footer() {
             </Link>
             {/* Twitter */}
             <Link
-              href={`https://twitter.com/${contactInfo.twitter}`}
+              href={`https://x.com/${contactInfo.twitter}`}
               target="_blank"
               rel="noopener noreferrer"
               passHref
