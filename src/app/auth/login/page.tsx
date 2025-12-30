@@ -13,9 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff, LogIn } from "lucide-react";
 import { unstable_noStore as noStore } from "next/cache";
+import { useToast } from "@/hooks/use-toast";
 
 export const dynamic = "force-dynamic";
 
@@ -25,23 +25,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
+  const { toast } = useToast();
 
   useEffect(() => {
     const message = searchParams.get("message");
     if (message) {
-      setSuccess(message);
+      toast({
+        title: "Success",
+        description: message,
+        variant: "success",
+      });
     }
-  }, [searchParams]);
+  }, [searchParams, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -55,6 +57,11 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Login successful!",
+          variant: "success",
+        });
         const userRole = data.user.role;
         if (userRole === "ADMIN") {
           router.push("/dashboard");
@@ -62,10 +69,18 @@ export default function LoginPage() {
           router.push("/");
         }
       } else {
-        setError(data.error || "Login failed");
+        toast({
+          title: "Error",
+          description: data.error || "Login failed",
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      toast({
+        title: "Error",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -90,22 +105,6 @@ export default function LoginPage() {
 
         <CardContent className="p-4 sm:p-6 pt-0">
           <form onSubmit={handleSubmit} className="space-y-2.5">
-            {success && (
-              <Alert className="border-green-500/30 bg-green-500/10 p-2 text-xs">
-                <AlertDescription className="text-green-300 text-xs">
-                  {success}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {error && (
-              <Alert className="border-red-500/30 bg-red-500/10 p-2 text-xs">
-                <AlertDescription className="text-red-300 text-xs">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-
             <div className="space-y-1">
               <Label htmlFor="email" className="text-xs text-slate-400">
                 Email

@@ -13,9 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff, UserPlus } from "lucide-react";
 import { unstable_noStore as noStore } from "next/cache";
+import { useToast } from "@/hooks/use-toast";
 
 export const dynamic = "force-dynamic";
 
@@ -28,16 +28,19 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
       setIsLoading(false);
       return;
     }
@@ -54,12 +57,25 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (response.ok) {
-        router.push("/auth/login?message=Account created successfully");
+        toast({
+          title: "Success",
+          description: "Account created successfully!",
+          variant: "success",
+        });
+        router.push("/auth/login");
       } else {
-        setError(data.error || "Registration failed");
+        toast({
+          title: "Error",
+          description: data.error || "Registration failed",
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      toast({
+        title: "Error",
+        description: "An error occurred. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -84,14 +100,6 @@ export default function SignupPage() {
 
         <CardContent className="p-4 sm:p-6 pt-0">
           <form onSubmit={handleSubmit} className="space-y-2.5">
-            {error && (
-              <Alert className="border-red-500/30 bg-red-500/10 p-2 text-xs">
-                <AlertDescription className="text-red-300 text-xs">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-
             <div className="space-y-1">
               <Label htmlFor="name" className="text-xs text-slate-400">
                 Full Name

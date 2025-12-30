@@ -25,13 +25,13 @@ function WhatsAppIcon(props: React.ComponentProps<'svg'>) {
 
 export function Footer() {
   const contactInfo = {
-    email: 'ndzelenromarick@gmail.com',
-    phone: '+237676154253',
-    whatsapp: '+237676154253',
-    github: 'bongnteh-romarick-ndzelen',
-    linkedin: 'bongnteh-romarick-ndzelen', // Assuming your LinkedIn username
-    twitter: 'bongnteh-romarick', // Update with your actual Twitter handle
-    facebook: 'bongnteh.romarick' // Update with your actual Facebook username
+    email: "ndzelenromarick@gmail.com",
+    phone: "+237676154253",
+    whatsapp: "+237676154253",
+    github: "bongnteh-romarick-ndzelen",
+    linkedin: "bongnteh-romarick-ndzelen-b2946023b",
+    twitter: "bongnteh-romarick", // Update with your actual Twitter handle
+    facebook: "Romarick10", // Update with your actual Facebook username
   };
 
   // Format phone number for tel: link (remove + sign)
@@ -53,7 +53,8 @@ export function Footer() {
               </p>
             </div>
             <p className="text-xs text-slate-500">
-              Made with <Heart className="inline h-3 w-3 text-red-400" /> using Next.js
+              Made with <Heart className="inline h-3 w-3 text-red-400" /> using
+              Next.js
             </p>
           </div>
 
@@ -61,9 +62,9 @@ export function Footer() {
           <div className="flex flex-wrap items-center justify-center gap-1">
             {/* Email */}
             <Link href={`mailto:${contactInfo.email}`} passHref>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 aria-label="Email"
                 className="h-9 w-9 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
                 title="Send me an email"
@@ -71,12 +72,11 @@ export function Footer() {
                 <Mail className="h-4 w-4" />
               </Button>
             </Link>
-
             {/* Phone */}
             <Link href={`tel:${telNumber}`} passHref>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 aria-label="Phone"
                 className="h-9 w-9 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10"
                 title="Call me"
@@ -84,17 +84,16 @@ export function Footer() {
                 <Phone className="h-4 w-4" />
               </Button>
             </Link>
-
             {/* WhatsApp */}
-            <Link 
-              href={`https://wa.me/${whatsappNumber}?text=Hello%20Bongnteh,%20I%20found%20your%20portfolio%20and%20would%20like%20to%20connect!`} 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <Link
+              href={`https://wa.me/${whatsappNumber}?text=Hello%20Bongnteh,%20I%20found%20your%20portfolio%20and%20would%20like%20to%20connect!`}
+              target="_blank"
+              rel="noopener noreferrer"
               passHref
             >
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 aria-label="WhatsApp"
                 className="h-9 w-9 text-slate-400 hover:text-green-400 hover:bg-green-500/10"
                 title="Message me on WhatsApp"
@@ -102,12 +101,16 @@ export function Footer() {
                 <WhatsAppIcon className="h-4 w-4" />
               </Button>
             </Link>
-
             {/* GitHub */}
-            <Link href={`https://github.com/${contactInfo.github}`} target="_blank" rel="noopener noreferrer" passHref>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+            <Link
+              href={`https://github.com/${contactInfo.github}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              passHref
+            >
+              <Button
+                variant="ghost"
+                size="icon"
                 aria-label="GitHub"
                 className="h-9 w-9 text-slate-400 hover:text-purple-400 hover:bg-purple-500/10"
                 title="View my GitHub profile"
@@ -115,12 +118,16 @@ export function Footer() {
                 <Github className="h-4 w-4" />
               </Button>
             </Link>
-
             {/* LinkedIn */}
-            <Link href={`https://linkedin.com/in/${contactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" passHref>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+            <Link
+              href={`https://linkedin.com/in/${contactInfo.linkedin}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              passHref
+            >
+              <Button
+                variant="ghost"
+                size="icon"
                 aria-label="LinkedIn"
                 className="h-9 w-9 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10"
                 title="Connect on LinkedIn"
@@ -128,12 +135,16 @@ export function Footer() {
                 <Linkedin className="h-4 w-4" />
               </Button>
             </Link>
-
             {/* Twitter */}
-            <Link href={`https://twitter.com/${contactInfo.twitter}`} target="_blank" rel="noopener noreferrer" passHref>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+            <Link
+              href={`https://twitter.com/${contactInfo.twitter}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              passHref
+            >
+              <Button
+                variant="ghost"
+                size="icon"
                 aria-label="Twitter"
                 className="h-9 w-9 text-slate-400 hover:text-sky-400 hover:bg-sky-500/10"
                 title="Follow me on Twitter"
@@ -141,12 +152,16 @@ export function Footer() {
                 <Twitter className="h-4 w-4" />
               </Button>
             </Link>
-
             {/* Facebook */}
-            <Link href={`https://facebook.com/${contactInfo.facebook}`} target="_blank" rel="noopener noreferrer" passHref>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+            <Link
+              href={`https://facebook.com/${contactInfo.facebook}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              passHref
+            >
+              <Button
+                variant="ghost"
+                size="icon"
                 aria-label="Facebook"
                 className="h-9 w-9 text-slate-400 hover:text-blue-600 hover:bg-blue-600/10"
                 title="Connect on Facebook"
@@ -162,23 +177,29 @@ export function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-sm text-slate-500">
             <div className="flex items-center gap-2">
               <Mail className="h-3 w-3" />
-              <a href={`mailto:${contactInfo.email}`} className="hover:text-slate-300 transition-colors">
+              <a
+                href={`mailto:${contactInfo.email}`}
+                className="hover:text-slate-300 transition-colors"
+              >
                 {contactInfo.email}
               </a>
             </div>
             <div className="hidden md:block">•</div>
             <div className="flex items-center gap-2">
               <Phone className="h-3 w-3" />
-              <a href={`tel:${telNumber}`} className="hover:text-slate-300 transition-colors">
+              <a
+                href={`tel:${telNumber}`}
+                className="hover:text-slate-300 transition-colors"
+              >
                 {contactInfo.phone}
               </a>
             </div>
             <div className="hidden md:block">•</div>
             <div className="flex items-center gap-2">
               <Github className="h-3 w-3" />
-              <a 
-                href={`https://github.com/${contactInfo.github}`} 
-                target="_blank" 
+              <a
+                href={`https://github.com/${contactInfo.github}`}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-slate-300 transition-colors"
               >
