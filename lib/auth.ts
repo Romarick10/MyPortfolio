@@ -1,7 +1,8 @@
 import bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { db } from "./prisma";
+import clientPromise from "@/config/db";
+import { ObjectId } from "mongodb";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 const SALT_ROUNDS = 10;
@@ -34,7 +35,10 @@ export const auth = {
   // Login user
   login: async (email: string, password: string) => {
     try {
-      const user = await db.user.findByEmail(email);
+      const client = await clientPromise;
+      const db = client.db("myportfolio");
+
+      const user = await db.collection("users").findOne({ email });
 
       if (!user) {
         throw new Error("User not found");
@@ -48,7 +52,7 @@ export const auth = {
       // Generate token
       const token: string = jwt.sign(
         {
-          id: user.id,
+          id: user._id.toString(),
           email: user.email,
           name: user.name,
           role: user.role,
@@ -59,7 +63,7 @@ export const auth = {
 
       return {
         user: {
-          id: user.id,
+          id: user._id.toString(),
           email: user.email,
           name: user.name,
           role: user.role,
@@ -68,11 +72,18 @@ export const auth = {
         token,
       };
     } catch (error) {
-      if (error instanceof Error && (error.message === "User not found" || error.message === "Invalid password")) {
+      if (
+        error instanceof Error &&
+        (error.message === "User not found" ||
+          error.message === "Invalid password")
+      ) {
         throw error; // Re-throw authentication errors
       }
       // Handle database connection issues
-      console.warn('Database connection issue in login:', error instanceof Error ? error.message : String(error));
+      console.warn(
+        "Database connection issue in login:",
+        error instanceof Error ? error.message : String(error)
+      );
       throw new Error("Service temporarily unavailable");
     }
   },
@@ -97,13 +108,16 @@ export const auth = {
         return null;
       }
 
-      const user = await db.user.findByEmail(decoded.email);
+      const client = await clientPromise;
+      const db = client.db('myportfolio');
+
+      const user = await db.collection('users').findOne({ email: decoded.email });
       if (!user) {
         return null;
       }
 
       return {
-        id: user.id,
+        id: user._id.toString(),
         email: user.email,
         name: user.name,
         role: user.role,
@@ -111,7 +125,10 @@ export const auth = {
       };
     } catch (error) {
       // Handle database connection issues during build time
-      console.warn('Database connection issue in getCurrentUser:', error instanceof Error ? error.message : String(error));
+      console.warn(
+        "Database connection issue in getCurrentUser:",
+        error instanceof Error ? error.message : String(error)
+      );
       return null;
     }
   },
