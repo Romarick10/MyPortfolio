@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import clientPromise from "@/config/db";
+import getClientPromise from "@/config/db";
 import { ObjectId } from "mongodb";
 
 // GET: Get all published posts
 export async function GET(request: NextRequest) {
   try {
-    const client = await clientPromise;
+    const client = await getClientPromise;
     const db = client.db('myportfolio');
 
     const searchParams = request.nextUrl.searchParams;
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
 // POST: Create new post (admin/author only)
 export async function POST(request: NextRequest) {
   try {
-    const client = await clientPromise;
+    const client = await getClientPromise;
     const db = client.db('myportfolio');
 
     const user = await auth.requireAuth();
