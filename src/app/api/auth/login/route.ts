@@ -26,6 +26,13 @@ export async function POST(request: NextRequest) {
     return response
   } catch (error: any) {
     console.error('Login error:', error)
+    // During build time, return a generic error
+    if (error.message === 'Service temporarily unavailable') {
+      return NextResponse.json(
+        { error: 'Service temporarily unavailable' },
+        { status: 503 }
+      )
+    }
     return NextResponse.json(
       { error: error.message || 'Authentication failed' },
       { status: 401 }

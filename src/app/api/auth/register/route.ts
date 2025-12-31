@@ -48,6 +48,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ user: userWithId }, { status: 201 });
   } catch (error) {
     console.error("Registration error:", error);
+    // During build time, return service unavailable
+    if (error instanceof Error && error.message.includes('ECONNREFUSED')) {
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
       { error: "Failed to create user" },
       { status: 500 }

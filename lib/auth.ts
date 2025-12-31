@@ -79,7 +79,7 @@ export const auth = {
       ) {
         throw error; // Re-throw authentication errors
       }
-      // Handle database connection issues
+      // Handle database connection issues during build time
       console.warn(
         "Database connection issue in login:",
         error instanceof Error ? error.message : String(error)
