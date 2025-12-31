@@ -194,10 +194,9 @@ export default function HomePage() {
               <div className="relative">
                 <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl"></div>
                 <Avatar className="h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 lg:h-72 lg:w-72 border-4 md:border-8 border-slate-900 relative">
-                  <AvatarImage 
-                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=romarick&backgroundColor=0f172a&hairColor=2c2c2c" 
-                    data-ai-hint="professional headshot" 
-                    alt="Bongnteh Romarick Ndzelen" 
+                  <AvatarImage
+                    src="/romarick.jpeg"
+                    alt="Bongnteh Romarick Ndzelen"
                   />
                   <AvatarFallback className="bg-gradient-to-br from-slate-800 to-slate-900 text-white text-2xl md:text-4xl">
                     BRN

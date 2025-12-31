@@ -90,10 +90,9 @@ export default function AboutPage() {
                     <div className="relative">
                       <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl"></div>
                       <Avatar className="h-32 w-32 md:h-40 md:w-40 border-4 border-slate-900 relative">
-                        <AvatarImage 
-                          src="https://api.dicebear.com/7.x/avataaars/svg?seed=romarick&backgroundColor=0f172a&hairColor=2c2c2c" 
-                          data-ai-hint="professional headshot" 
-                          alt="Bongnteh Romarick Ndzelen" 
+                        <AvatarImage
+                          src="/romarick.jpeg"
+                          alt="Bongnteh Romarick Ndzelen"
                         />
                         <AvatarFallback className="bg-gradient-to-br from-slate-800 to-slate-900 text-white text-2xl">
                           BRN
