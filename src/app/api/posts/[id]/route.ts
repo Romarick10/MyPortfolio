@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import clientPromise from "@/config/db";
+import { ObjectId } from "mongodb";
 
 // GET: Get single post
 export async function GET(
@@ -8,8 +9,19 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const client = await clientPromise;
+    const db = client.db("myportfolio");
+
     const { id } = await params;
-    const post = (await db.post.findBySlug(id)) || (await db.post.findById(id));
+
+    // Try to find by _id first, then by slug
+    let post;
+    if (ObjectId.isValid(id)) {
+      post = await db.collection("posts").findOne({ _id: new ObjectId(id) });
+    }
+    if (!post) {
+      post = await db.collection("posts").findOne({ slug: id });
+    }
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
@@ -22,17 +34,13 @@ export async function GET(
 
     // Increment view count only for published posts and for public views
     if (post.published) {
-      await db.post.update({
-        where: { id: post.id },
-        data: { views: { increment: 1 } },
-      });
+      await db
+        .collection("posts")
+        .updateOne({ _id: post._id }, { $inc: { views: 1 } });
+      post.views += 1; // Update the local object
     }
 
-    // Re-fetch post to get the updated view count
-    const updatedPost =
-      (await db.post.findBySlug(id)) || (await db.post.findById(id));
-
-    return NextResponse.json(updatedPost);
+    return NextResponse.json(post);
   } catch (error) {
     console.error("Get post error:", error);
     return NextResponse.json(
@@ -48,63 +56,116 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const client = await clientPromise;
+    const db = client.db("myportfolio");
+
     const user = await auth.requireAuth();
     const { id } = await params;
 
-    const existingPost = await db.post.findUnique({ where: { id } });
+    // Find existing post
+    let existingPost;
+    if (ObjectId.isValid(id)) {
+      existingPost = await db
+        .collection("posts")
+        .findOne({ _id: new ObjectId(id) });
+    }
+    if (!existingPost) {
+      existingPost = await db.collection("posts").findOne({ slug: id });
+    }
+
     if (!existingPost) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
     const isAdmin = await auth.isAdmin();
-    if (existingPost.authorId !== user.id && !isAdmin) {
+    if (existingPost.authorId.toString() !== user.id && !isAdmin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const body = await request.json();
 
-    const post = await db.post.update({
-      where: { id },
-      data: {
-        title: body.title,
-        excerpt: body.excerpt,
-        content: body.content,
-        slug: (body.slug || body.title)
-          .toLowerCase()
-          .replace(/[^\w\s]/g, "")
-          .replace(/\s+/g, "-"),
-        coverImage: body.coverImage,
-        published: body.published,
-        featured: body.featured,
-        readTime: body.readTime || calculateReadTime(body.content),
-        categories: body.categories
-          ? {
-              set: body.categories.map((id: string) => ({ id })),
-            }
-          : undefined,
-        tags: body.tags
-          ? {
-              set: [], // Disconnect all first
-              connectOrCreate: body.tags.map((tag: string) => ({
-                where: { name: tag },
-                create: {
-                  name: tag,
-                  slug: tag.toLowerCase().replace(/\s+/g, "-"),
-                },
-              })),
-            }
-          : undefined,
-        publishedAt:
-          body.published && !existingPost.publishedAt
-            ? new Date()
-            : existingPost.publishedAt,
-      },
-      include: {
-        author: true,
-        categories: true,
-        tags: true,
-      },
-    });
+    // Handle categories
+    const categoryIds =
+      body.categories?.map((id: string) => new ObjectId(id)) ||
+      existingPost.categories;
+
+    // Handle tags
+    let tagIds = existingPost.tags || [];
+    if (body.tags) {
+      tagIds = [];
+      for (const tagName of body.tags) {
+        let tag = await db.collection("tags").findOne({ name: tagName });
+        if (!tag) {
+          const tagSlug = tagName.toLowerCase().replace(/\s+/g, "-");
+          const result = await db.collection("tags").insertOne({
+            name: tagName,
+            slug: tagSlug,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+          tag = { _id: result.insertedId };
+        }
+        tagIds.push(tag._id);
+      }
+    }
+
+    const updateData: any = {
+      title: body.title,
+      excerpt: body.excerpt,
+      content: body.content,
+      slug: (body.slug || body.title)
+        .toLowerCase()
+        .replace(/[^\w\s]/g, "")
+        .replace(/\s+/g, "-"),
+      coverImage: body.coverImage,
+      published: body.published,
+      featured: body.featured,
+      readTime: body.readTime || calculateReadTime(body.content),
+      categories: categoryIds,
+      tags: tagIds,
+      updatedAt: new Date(),
+    };
+
+    if (body.published && !existingPost.publishedAt) {
+      updateData.publishedAt = new Date();
+    }
+
+    await db
+      .collection("posts")
+      .updateOne({ _id: existingPost._id }, { $set: updateData });
+
+    // Fetch updated post with populated fields
+    const post = await db
+      .collection("posts")
+      .aggregate([
+        { $match: { _id: existingPost._id } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "authorId",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        { $unwind: { path: "$author", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "categories",
+            foreignField: "_id",
+            as: "categories",
+          },
+        },
+        {
+          $lookup: {
+            from: "tags",
+            localField: "tags",
+            foreignField: "_id",
+            as: "tags",
+          },
+        },
+      ])
+      .next();
 
     return NextResponse.json(post);
   } catch (error: any) {
@@ -122,6 +183,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const client = await clientPromise;
+    const db = client.db("myportfolio");
+
     await auth.requireAuth();
     const { id } = await params;
 
@@ -129,9 +193,20 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await db.post.delete({
-      where: { id },
-    });
+    // Find the post first
+    let post;
+    if (ObjectId.isValid(id)) {
+      post = await db.collection("posts").findOne({ _id: new ObjectId(id) });
+    }
+    if (!post) {
+      post = await db.collection("posts").findOne({ slug: id });
+    }
+
+    if (!post) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    await db.collection("posts").deleteOne({ _id: post._id });
 
     return NextResponse.json({ message: "Post deleted successfully" });
   } catch (error: any) {

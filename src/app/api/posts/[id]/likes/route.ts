@@ -1,24 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/prisma";
 import { headers } from "next/headers";
+import clientPromise from "@/config/db";
+import { ObjectId } from "mongodb";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const client = await clientPromise;
+    const db = client.db("myportfolio");
+
     const { id: postId } = await params;
     const body = await request.json();
     const headersList = await headers();
 
-    const like = await db.like.create({
-      data: {
-        postId,
-        userId: body.userId,
-        userIp: headersList.get("x-forwarded-for") || "unknown",
-        userAgent: headersList.get("user-agent") || "unknown",
-      },
-    });
+    const likeData = {
+      postId: new ObjectId(postId),
+      userId: body.userId ? new ObjectId(body.userId) : null,
+      userIp: headersList.get("x-forwarded-for") || "unknown",
+      userAgent: headersList.get("user-agent") || "unknown",
+      createdAt: new Date(),
+    };
+
+    const result = await db.collection("likes").insertOne(likeData);
+
+    const like = { _id: result.insertedId, ...likeData };
 
     return NextResponse.json(like);
   } catch (error) {
@@ -32,15 +39,23 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const client = await clientPromise;
+    const db = client.db("myportfolio");
+
     const { id: postId } = await params;
     const body = await request.json();
 
-    await db.like.deleteMany({
-      where: {
-        postId,
-        OR: [{ userId: body.userId }, { userIp: body.userIp }],
-      },
-    });
+    const deleteConditions: any = {
+      postId: new ObjectId(postId),
+    };
+
+    if (body.userId) {
+      deleteConditions.userId = new ObjectId(body.userId);
+    } else if (body.userIp) {
+      deleteConditions.userIp = body.userIp;
+    }
+
+    await db.collection("likes").deleteMany(deleteConditions);
 
     return NextResponse.json({ message: "Unliked successfully" });
   } catch (error) {
